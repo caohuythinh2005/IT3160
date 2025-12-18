@@ -14,13 +14,11 @@ class TkinterDisplay(BaseDisplay):
         self.pacman_shape = None
         self.ghost_shapes = {}
 
-        # Private attributes for graphics
         self._root = None
         self._canvas = None
         self._window_closed = False
         self._title = title
 
-        # Hằng số từ layouts.py
         self.PACMAN_RADIUS = layouts.PACMAN_RADIUS
         self.FOOD_RADIUS = layouts.FOOD_RADIUS
         self.CAPSULE_RADIUS = layouts.CAPSULE_RADIUS
@@ -33,9 +31,6 @@ class TkinterDisplay(BaseDisplay):
         self.GHOST_COLORS = layouts.GHOST_COLORS
         self.SCARED_COLOR = layouts.SCARED_COLOR
 
-    # ======================
-    # Graphics methods
-    # ======================
     def _formatColor(self, r, g, b):
         return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
 
@@ -102,9 +97,7 @@ class TkinterDisplay(BaseDisplay):
             self._root = None
             self._canvas = None
 
-    # ======================
-    # Display interface
-    # ======================
+
     def initialize(self, state: GameState):
         h, w = state.object_matrix.shape
         self._begin_graphics(w * self.grid_size, (h + 1) * self.grid_size)
@@ -116,7 +109,6 @@ class TkinterDisplay(BaseDisplay):
             for x, val in enumerate(row):
                 pos = (x, y)
 
-                # Wall
                 if val == layouts.WALL:
                     if pos not in self.shapes:
                         x0, y0 = x * self.grid_size, y * self.grid_size
@@ -125,7 +117,6 @@ class TkinterDisplay(BaseDisplay):
                             x0, y0, x1, y1, fill=self.WALL_COLOR, outline=self.WALL_OUTLINE
                         )
 
-                # Food / Capsule
                 elif val in (layouts.FOOD, layouts.CAPSULE):
                     if pos not in self.shapes:
                         radius = self.CAPSULE_RADIUS if val == layouts.CAPSULE else self.FOOD_RADIUS
@@ -133,7 +124,6 @@ class TkinterDisplay(BaseDisplay):
                         sp = ((x + 0.5) * self.grid_size, (y + 0.5) * self.grid_size)
                         self.shapes[pos] = self._circle(sp, self.grid_size * radius, color, color)
 
-                # Remove previous food/capsule
                 else:
                     if pos in self.shapes and val not in (layouts.WALL, layouts.PACMAN,
                                                          layouts.GHOST1, layouts.GHOST2,
@@ -141,11 +131,9 @@ class TkinterDisplay(BaseDisplay):
                         self._remove_from_screen(self.shapes[pos])
                         del self.shapes[pos]
 
-                # Pacman
                 if val == layouts.PACMAN:
                     self._render_pacman(x, y, state.pacman.dir)
 
-                # Ghosts
                 if val in (layouts.GHOST1, layouts.GHOST2, layouts.GHOST3, layouts.GHOST4):
                     self._render_ghost(val, x, y, state)
 

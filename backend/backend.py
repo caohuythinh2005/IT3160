@@ -14,9 +14,6 @@ from pacman_game import PacmanGame
 from config.socket_config import HOST, PORT
 from envs.game_state import serialize_state
 
-# -------------------------------
-# Game init
-# -------------------------------
 MAP_FILE = os.path.join(PROJECT_ROOT, "maps/mediumClassic.map")
 if not os.path.isfile(MAP_FILE):
     raise FileNotFoundError(f"[Error] Map file not found: {MAP_FILE}")
@@ -26,25 +23,19 @@ state_lock = threading.Lock()
 ui = TkinterDisplay(zoom=1.5, frame_time=0.05)
 game = PacmanGame(MAP_FILE, display=ui)
 
-# Turn-based
 current_turn_agent = 0
 pending_actions = {}  # agent_idx -> action
 last_executed = {}    # agent_idx -> last action
 
-# -------------------------------
-# Handle actions
-# -------------------------------
 def handle_action(agent_idx, action):
     global current_turn_agent
     with state_lock:
         if agent_idx != current_turn_agent:
-            # Bỏ qua action không đúng lượt
             return
         pending_actions[agent_idx] = action
         print(f"[Server] Action received: agent {agent_idx} -> {action}")
 
 def update_game_tick():
-    """Tick game mỗi 50ms"""
     global current_turn_agent
     with state_lock:
         action = pending_actions.get(current_turn_agent)
@@ -58,16 +49,12 @@ def update_game_tick():
         pending_actions.clear()
         if game.display:
             game.display.update(game.get_state())
-        # Chuyển lượt
         current_turn_agent = (current_turn_agent + 1) % NUM_AGENTS
 
 def get_current_state():
     with state_lock:
         return serialize_state(game.get_state())
 
-# -------------------------------
-# Socket server
-# -------------------------------
 def handle_client(conn, addr):
     print(f"[Server] New connection: {addr}")
     buffer = ""
@@ -83,7 +70,6 @@ def handle_client(conn, addr):
                 line, buffer = buffer.split("\n", 1)
                 if not line.strip():
                     continue
-
                 try:
                     msg = json.loads(line)
                 except json.JSONDecodeError:
@@ -138,9 +124,6 @@ def start_server():
     finally:
         s.close()
 
-# -------------------------------
-# Main loop for UI + game tick
-# -------------------------------
 def game_loop():
     while True:
         update_game_tick()

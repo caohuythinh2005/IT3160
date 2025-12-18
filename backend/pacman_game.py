@@ -11,11 +11,9 @@ class PacmanGame:
         self.last_actions = {}
         self.display = display
 
-        # Init UI
         if self.display:
             self.display.initialize(self.state)
 
-    # -------- MAP LOADING --------
     def load_map(self, file_path: str) -> GameState:
         with open(file_path, "r") as f:
             lines = [line.rstrip("\n") for line in f if line.strip()]
@@ -57,7 +55,6 @@ class PacmanGame:
     def get_state(self) -> GameState:
         return self.state
 
-    # -------- PACMAN --------
     def move_pacman(self, action: str):
         pac = self.state.pacman
         action_map = {"North": 1, "East": 2, "South": 3, "West": 4}
@@ -115,14 +112,10 @@ class PacmanGame:
         nx, ny = ghost.x + dx, ghost.y + dy
         H, W = self.state.object_matrix.shape
 
-        # Kiểm tra va chạm với tường
         if 0 <= nx < W and 0 <= ny < H and self.state.object_matrix[ny, nx] != layouts.WALL:
-            # Xóa ghost cũ khỏi object_matrix
             self.state.object_matrix[ghost.y, ghost.x] = layouts.EMPTY
-            # Cập nhật ghost
             ghost.x, ghost.y = nx, ny
             ghost.dir = {"North":1, "East":2, "South":3, "West":4}[action]
-            # Đặt ghost mới vào object_matrix
             self.state.object_matrix[ny, nx] = getattr(layouts, f"GHOST{ghost_idx+1}", layouts.GHOST1)
 
         if ghost.scared_timer > 0:
@@ -137,8 +130,7 @@ class PacmanGame:
             else:
                 self.state.lose = True
 
-                
-    # -------- APPLY ACTION --------
+
     def apply_action(self, agent_idx: int, action: str):
         self.last_actions[agent_idx] = action
 
@@ -149,13 +141,10 @@ class PacmanGame:
 
         return True
 
-    # -------- TICK LOOP -----------
     def draw_ui_tick(self):
-        """Gọi trong game_loop hoặc UI loop, khoảng 20-50ms 1 lần"""
         if self.display:
             self.display.update(self.state)
 
-    # -------- UI / GAME OVER --------
     def check_game_over(self) -> bool:
         if self.state.win or self.state.lose:
             if self.display:

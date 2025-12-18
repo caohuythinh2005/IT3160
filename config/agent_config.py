@@ -1,25 +1,25 @@
 AGENT_SETTINGS = {
     0: {
         "name": "Pacman",
-        "available_algos": ["Keyboard", "Random"],
-        "default": "Keyboard"
+        "available_algos": ["RandomPacman"],
+        "default": "RandomPacman"
     },
     1: {
         "name": "Ghost 1",
-        "available_algos": ["Random", "Directional"],
-        "default": "Random"
+        "available_algos": ["RandomGhost", "DirectionalGhost"],
+        "default": "RandomGhost"
     },
     2: {
         "name": "Ghost 2",
-        "available_algos": ["Random", "Directional"],
-        "default": "Directional"
+        "available_algos": ["RandomGhost", "DirectionalGhost"],
+        "default": "DirectionalGhost"
     }
 }
 
 ALGO_MAP = {
-    "keyboard": "keyboard_pacman",
-    "random": "random_ghost",
-    "directional": "directional_ghost",
+    "randompacman": "random_pacman",
+    "randomghost": "random_ghost",
+    "directionalghost": "directional_ghost",
 }
 
 def get_factory_algo_name(ui_algo_name):

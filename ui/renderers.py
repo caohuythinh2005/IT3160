@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 from envs.game_state import GameState
 
-# Base display class
 class BaseDisplay(ABC):
     def __init__(self, zoom: float = 1.0, frame_time: float = 0.0):
         self.zoom = zoom
