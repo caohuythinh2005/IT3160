@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from envs.game_state import GameState
 
 class Agent:
@@ -13,4 +13,3 @@ class Agent:
     
     def final(self, gameState: GameState) -> None:
         return None
-    
