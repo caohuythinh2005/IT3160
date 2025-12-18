@@ -1,5 +1,5 @@
 import random
-from agent import Agent
+from .agent import Agent
 from envs.directions import Directions
 from typing import Any
 
