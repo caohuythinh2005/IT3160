@@ -12,7 +12,7 @@ class TkinterDisplay(BaseDisplay):
         self.grid_size = layouts.GRID_SIZE
         self.shapes = {}
         self.pacman_shape = None
-        self.ghost_shapes = {}  # ghost_idx -> list of canvas IDs
+        self.ghost_shapes = {} 
 
         self._root = None
         self._canvas = None
@@ -151,6 +151,7 @@ class TkinterDisplay(BaseDisplay):
             self.ghost_shapes[idx] = []
 
     def _render_pacman(self, x, y, direction):
+        print(direction)
         if self.pacman_shape:
             self._remove_from_screen(self.pacman_shape)
 

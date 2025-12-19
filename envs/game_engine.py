@@ -4,28 +4,17 @@ from envs import layouts
 from envs.directions import Directions, Actions
 
 class GameEngine:
-    """
-    Core logic engine: movement, scoring, collisions, and game state updates.
-    """
-
-    # -------------------------
-    # Ghost helpers
-    # -------------------------
     @staticmethod
     def get_ghost_id(ghost_idx: int) -> int:
-        """Trả về layout constant của ghost dựa vào index."""
         ghost_ids = [layouts.GHOST1, layouts.GHOST2, layouts.GHOST3, layouts.GHOST4]
         return ghost_ids[ghost_idx]
 
     @staticmethod
     def get_ghost_spawn(ghost_idx: int) -> tuple[int, int]:
-        """Trả về vị trí spawn (x, y) của ghost dựa vào index."""
         ghost_spawns = [(1, 1), (3, 1), (1, 3), (3, 3)]  # chỉnh theo map của bạn
         return ghost_spawns[ghost_idx]
 
-    # -------------------------
-    # Apply action
-    # -------------------------
+
     @staticmethod
     def apply_action(state: GameState, agent_idx: int, action: str):
         if state.win or state.lose or action not in Directions.ALL:
@@ -65,13 +54,10 @@ class GameEngine:
                 if g.x == pac.x and g.y == pac.y:
                     GameEngine._resolve_collision(state, i)
 
-            # Kiểm tra thắng
             if not np.any((state.object_matrix == layouts.FOOD) | (state.object_matrix == layouts.CAPSULE)):
                 state.win = True
 
-    # -------------------------
-    # Ghost movement
-    # -------------------------
+
     @staticmethod
     def move_ghost(state: GameState, ghost_idx: int, action: str):
         ghost = state.ghosts[ghost_idx]
@@ -80,9 +66,7 @@ class GameEngine:
         H, W = state.object_matrix.shape
 
         if 0 <= nx < W and 0 <= ny < H and not state.is_wall(nx, ny):
-            # Xóa vị trí cũ
             state.object_matrix[ghost.y, ghost.x] = layouts.EMPTY
-            # Cập nhật vị trí ghost mới
             ghost.x, ghost.y = nx, ny
             state.object_matrix[ny, nx] = GameEngine.get_ghost_id(ghost_idx)
 
