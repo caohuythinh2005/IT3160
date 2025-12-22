@@ -8,6 +8,7 @@ class PacmanGame:
     def __init__(self, map_file: str, display: BaseDisplay = None):
         self.map_file = map_file
         self.state = self.load_map(map_file)
+        self.state_size = self.state.object_matrix.shape  # Lưu state size (H, W)
         self.last_actions = {}
         self.display = display
 
@@ -48,6 +49,9 @@ class PacmanGame:
 
     def get_state(self) -> GameState:
         return self.state
+
+    def get_state_size(self):
+        return self.state_size
 
     def apply_action(self, agent_idx: int, action: str):
         self.last_actions[agent_idx] = action

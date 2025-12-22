@@ -6,10 +6,13 @@ from envs.game_state import GameState
 from envs.directions import Directions, Actions
 
 class SmartGhostAgent(GhostAgent):
+    def __init__(self, index):
+        super().__init__(index)
+        
     def getAction(self, gameState: GameState) -> str:
         legal = gameState.getLegalActions(self.index)
         if not legal:
-            return Directions.STOP
+            return Directions.LEFT
 
         ghost_pos = gameState.getAgentPosition(self.index)
         pacman_pos = gameState.getPacmanPosition()

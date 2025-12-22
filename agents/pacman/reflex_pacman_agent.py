@@ -5,6 +5,9 @@ import numpy as np
 import envs.layouts as layouts
 
 class ReflexPacmanAgent(PacmanAgent):
+    def __init__(self, index):
+        super().__init__(index)
+
     def getAction(self, gameState: GameState) -> str:
         legal = gameState.getLegalActions(self.index)
         

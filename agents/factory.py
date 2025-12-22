@@ -7,11 +7,7 @@ from agents.pacman.reflex_pacman_agent import ReflexPacmanAgent
 from agents.ghosts.smart_ghost_agent import SmartGhostAgent
 from agents.pacman.qdn_pacman_agent import DQNPacmanAgent
 
-
-
-
-
-def make_agent(algo: str, index: int):
+def make_agent(algo: str, index: int, **kwargs):
     internal_algo = get_factory_algo_name(algo)
     
     if internal_algo == "random_ghost":
@@ -27,6 +23,7 @@ def make_agent(algo: str, index: int):
     elif internal_algo == "smart_ghost":
         return SmartGhostAgent(index)
     elif internal_algo == "dqn_pacman":
-        return DQNPacmanAgent(index)
+        state_shape = kwargs.get("state_shape", (1, 11, 20))  
+        return DQNPacmanAgent(index=index, state_shape=state_shape)
     else:
         raise ValueError(f"Unknown agent algo '{internal_algo}' (original: '{algo}')")

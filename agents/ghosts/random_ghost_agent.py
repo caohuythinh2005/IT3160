@@ -6,6 +6,8 @@ import random
 
 
 class RandomGhostAgent(GhostAgent):
+    def __init__(self, index):
+        super().__init__(index)
 
     def getAction(self, gameState: GameState) -> str:
         legal = gameState.getLegalActions(self.index)

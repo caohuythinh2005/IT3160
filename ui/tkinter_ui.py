@@ -67,7 +67,7 @@ class TkinterDisplay(BaseDisplay):
         e = [0, 359] if endpoints is None else list(endpoints)
         while e[0] > e[1]: e[1] += 360
         return self._canvas.create_arc(x0, y0, x1, y1, outline=outlineColor, fill=fillColor,
-                                       extent=e[1] - e[0], start=e[0], style="pieslice", width=width)
+                                        extent=e[1] - e[0], start=e[0], style="pieslice", width=width)
 
     def _text(self, pos, color, contents, size=12, style="normal", anchor="nw"):
         return self._canvas.create_text(pos[0], pos[1], fill=color, text=contents,
@@ -96,11 +96,17 @@ class TkinterDisplay(BaseDisplay):
 
     def update(self, state: GameState):
         mat = state.object_matrix
-        for y, row in enumerate(mat):
-            for x, val in enumerate(row):
-                pos = (x, y)
+        h, w = mat.shape
+        
+        current_frame_objects = set()
 
+        for y in range(h):
+            for x in range(w):
+                val = mat[y, x]
+                pos = (x, y)
+                
                 if val == layouts.WALL:
+                    current_frame_objects.add(pos)
                     if pos not in self.shapes:
                         x0, y0 = x * self.grid_size, y * self.grid_size
                         x1, y1 = x0 + self.grid_size, y0 + self.grid_size
@@ -109,6 +115,7 @@ class TkinterDisplay(BaseDisplay):
                         )
 
                 elif val == layouts.FOOD:
+                    current_frame_objects.add(pos)
                     if pos not in self.shapes:
                         r = self.grid_size * self.FOOD_RADIUS
                         cx, cy = (x + 0.5) * self.grid_size, (y + 0.5) * self.grid_size
@@ -118,6 +125,7 @@ class TkinterDisplay(BaseDisplay):
                         )
 
                 elif val == layouts.CAPSULE:
+                    current_frame_objects.add(pos)
                     color = self.CAPSULE_COLOR if int(time.time() * 4) % 2 == 0 else "white"
                     if pos in self.shapes:
                         self._canvas.itemconfig(self.shapes[pos], fill=color, outline=color)
@@ -128,19 +136,17 @@ class TkinterDisplay(BaseDisplay):
                             cx - r, cy - r, cx + r, cy + r, fill=color, outline=color
                         )
 
-                else:
-                    if pos in self.shapes and val not in (layouts.WALL, layouts.PACMAN,
-                                                         layouts.GHOST1, layouts.GHOST2,
-                                                         layouts.GHOST3, layouts.GHOST4):
-                        self._remove_from_screen(self.shapes[pos])
-                        del self.shapes[pos]
+        old_positions = list(self.shapes.keys())
+        for pos in old_positions:
+            if pos not in current_frame_objects:
+                self._remove_from_screen(self.shapes[pos])
+                del self.shapes[pos]
 
-                if val == layouts.PACMAN:
-                    d = state.pacman.dir if state.pacman else "Stop"
-                    self._render_pacman(x, y, d)
+        if state.pacman:
+            self._render_pacman(state.pacman.x, state.pacman.y, state.pacman.dir)
 
-                if val in (layouts.GHOST1, layouts.GHOST2, layouts.GHOST3, layouts.GHOST4):
-                    self._render_ghost(val, x, y, state)
+        for i, ghost in enumerate(state.ghosts):
+            self._render_ghost(i, ghost.x, ghost.y, state)
 
         self._changeText(self.score_id, f"Score: {int(state.score)}")
         self._refresh()
@@ -162,16 +168,10 @@ class TkinterDisplay(BaseDisplay):
         angle_map = {
             "North": 90, "South": 270, "East": 0, "West": 180,
             "Up": 90, "Down": 270, "Left": 180, "Right": 0,
-            "Stop": 0,
-            1: 90, 2: 0, 3: 270, 4: 180, 0: 0,
-            "1": 90, "2": 0, "3": 270, "4": 180, "0": 0
+            "Stop": 0
         }
         
-        # Lấy góc, fallback về 0 (East) nếu không tìm thấy
-        base_angle = angle_map.get(direction, None)
-        if base_angle is None:
-            base_angle = angle_map.get(str(direction), 0)
-
+        base_angle = angle_map.get(direction, 0)
         mouth_width = 45 * abs(math.sin(time.time() * 18))
         
         self.pacman_shape = self._canvas.create_arc(
@@ -182,14 +182,15 @@ class TkinterDisplay(BaseDisplay):
             style="pieslice"
         )
 
-    def _render_ghost(self, val, x, y, state):
-        idx = val - layouts.GHOST1
+    def _render_ghost(self, idx, x, y, state):
         self._clear_ghost(idx)
         self.ghost_shapes[idx] = []
 
         cx, cy = (x + 0.5) * self.grid_size, (y + 0.5) * self.grid_size
         r = self.grid_size * self.GHOST_RADIUS
-        scared = state.is_ghost_scared(idx) if hasattr(state, "is_ghost_scared") else False
+        
+        ghost_obj = state.ghosts[idx]
+        scared = ghost_obj.scared_timer > 0
         color = self.SCARED_COLOR if scared else self.GHOST_COLORS[idx % len(self.GHOST_COLORS)]
 
         self.ghost_shapes[idx].append(self._canvas.create_arc(cx-r, cy-r, cx+r, cy+r/2, start=0, extent=180, fill=color, outline=color))

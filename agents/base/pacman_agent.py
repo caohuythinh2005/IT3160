@@ -4,6 +4,9 @@ from envs.directions import Directions
 import random
 
 class PacmanAgent(Agent):
+    def __init__(self, index: int = 0):
+        super().__init__(index)
+
     def getAction(self, gameState: GameState) -> str:
         legal = gameState.getLegalActions(self.index)
         if not legal:
