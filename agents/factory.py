@@ -25,5 +25,8 @@ def make_agent(algo: str, index: int, **kwargs):
     elif internal_algo == "dqn_pacman":
         state_shape = kwargs.get("state_shape", (1, 11, 20))  
         return DQNPacmanAgent(index=index, state_shape=state_shape)
+    elif internal_algo == "keyboard_pacman":
+        from agents.pacman.keyboard_pacman_agent import KeyboardPacmanAgent
+        return KeyboardPacmanAgent(index)
     else:
         raise ValueError(f"Unknown agent algo '{internal_algo}' (original: '{algo}')")

@@ -1,8 +1,8 @@
 AGENT_SETTINGS = {
     0: {
         "name": "Pacman",
-        "available_algos": ["RandomPacman", "GreedyPacman", "ReflexPacman", "DQNPacman"],
-        "default": "DQNPacman"
+        "available_algos": ["KeyboardPacman", "RandomPacman", "GreedyPacman", "ReflexPacman", "DQNPacman"],
+        "default": "KeyboardPacman"
     },
     1: {
         "name": "Ghost 1",
@@ -23,7 +23,8 @@ ALGO_MAP = {
     "randomghost": "random_ghost",
     "directionalghost": "directional_ghost",
     "smartghost": "smart_ghost",
-    "dqnpacman": "dqn_pacman"
+    "dqnpacman": "dqn_pacman",
+    "keyboardpacman": "keyboard_pacman"
 }
 
 def get_factory_algo_name(ui_algo_name):
