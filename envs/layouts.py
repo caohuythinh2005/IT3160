@@ -14,7 +14,7 @@ GHOST3 = 7      # ghost loại 3
 GHOST4 = 8      # ghost loại 4
 
 # -------------------------
-GRID_SIZE = 40
+GRID_SIZE = 20
 PACMAN_RADIUS = 0.5
 FOOD_RADIUS = 0.2
 CAPSULE_RADIUS = 0.5

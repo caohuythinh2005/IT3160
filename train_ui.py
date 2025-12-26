@@ -60,7 +60,7 @@ def train():
         time1 = 0
 
         while not done:
-            time1 += 1
+            # time1 += 1
             curr_idx = step_count % num_agents
             agent = all_agents[curr_idx]
 
@@ -76,7 +76,7 @@ def train():
             if curr_idx == 0:  # pacman
                 current_score = next_state.getScore()
                 reward = current_score
-                reward += time1 * point.TIME_PENALTY
+                # reward += point.TIME_PENALTY
                 done = game.check_game_over()
 
                 if done:

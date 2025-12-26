@@ -24,36 +24,31 @@ ui = TkinterDisplay(zoom=1.5, frame_time=0.001)
 game = PacmanGame(MAP_FILE, display=ui)
 
 current_turn_agent = 0
-pending_actions = {} 
-last_executed = {}    
+pending_actions = {}
+last_executed = {}
+paused = False
 
 def handle_action(agent_idx, action):
     global current_turn_agent
     with state_lock:
+        if paused:
+            return
         if agent_idx != current_turn_agent:
             return
-        
-        print(f"[Server] RAW Action received: {action} | Type: {type(action)}")
-
-        if isinstance(action, list):
-            if len(action) > 0:
-                action = action[0]
-                print(f"[Server] -> Converted list to value: {action}")
-        
+        if isinstance(action, list) and len(action) > 0:
+            action = action[0]
         pending_actions[agent_idx] = action
 
 def update_game_tick():
     global current_turn_agent
     with state_lock:
+        if paused:
+            return
         action = pending_actions.get(current_turn_agent)
-        if action is not None: 
+        if action is not None:
             applied = game.apply_action(current_turn_agent, action)
             if applied:
-                print(f"[Server] Action executed: agent {current_turn_agent} -> {action}")
                 last_executed[current_turn_agent] = action
-            else:
-                print(f"[Server] Action ignored (Illegal): agent {current_turn_agent} -> {action}")
-        
         pending_actions.clear()
         if game.display:
             game.display.update(game.get_state())
@@ -64,15 +59,13 @@ def get_current_state():
         return serialize_state(game.get_state())
 
 def handle_client(conn, addr):
-    print(f"[Server] New connection: {addr}")
+    global paused
     buffer = ""
     try:
         while True:
             data = conn.recv(8192)
             if not data:
-                print(f"[Server] {addr} disconnected.")
                 break
-
             buffer += data.decode("utf-8")
             while "\n" in buffer:
                 line, buffer = buffer.split("\n", 1)
@@ -81,38 +74,40 @@ def handle_client(conn, addr):
                 try:
                     msg = json.loads(line)
                 except json.JSONDecodeError:
-                    print(f"[Server] JSONDecodeError from {addr}: {line}")
                     continue
 
                 msg_type = msg.get("type")
 
                 if msg_type == "action":
-                    agent_idx = msg.get("agent")
-                    action = msg.get("action")
-                    handle_action(agent_idx, action)
+                    handle_action(msg.get("agent"), msg.get("action"))
 
                 elif msg_type == "request_state":
-                    agent_idx = msg.get("agent")
-                    state_dict = get_current_state()
                     res = {
                         "type": "state",
-                        "state": state_dict,
+                        "state": get_current_state(),
                         "current_turn": current_turn_agent
                     }
                     conn.sendall((json.dumps(res) + "\n").encode("utf-8"))
 
                 elif msg_type == "get_status":
-                    res = {"type": "status", "last_executed": last_executed}
+                    res = {
+                        "type": "status",
+                        "last_executed": last_executed,
+                        "paused": paused
+                    }
                     conn.sendall((json.dumps(res) + "\n").encode("utf-8"))
 
                 elif msg_type == "command":
-                    print(f"[Server] Set algo for agent {msg.get('agent')}: {msg.get('algo')}")
-
-                else:
-                    print(f"[Server] Unknown message type: {msg_type}")
+                    cmd = msg.get("cmd")
+                    if cmd == "pause":
+                        paused = True
+                        game.set_pause(True)
+                    elif cmd == "unpause":
+                        paused = False
+                        game.set_pause(False)
 
     except ConnectionResetError:
-        print(f"[Server] {addr} disconnected abruptly.")
+        pass
     finally:
         conn.close()
 
@@ -121,14 +116,10 @@ def start_server():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((HOST, PORT))
     s.listen(20)
-    print(f"--- SERVER + UI RUNNING AT {HOST}:{PORT} ---")
-
     try:
         while True:
             conn, addr = s.accept()
             threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
-    except KeyboardInterrupt:
-        print("\n[Server] Shutting down...")
     finally:
         s.close()
 
@@ -140,5 +131,4 @@ def game_loop():
 if __name__ == "__main__":
     threading.Thread(target=start_server, daemon=True).start()
     threading.Thread(target=game_loop, daemon=True).start()
-    print("--- Pacman server + UI running ---")
     ui.mainloop()
