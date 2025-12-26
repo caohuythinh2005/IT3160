@@ -1,6 +1,17 @@
-Chạy thì
-cd backend
-chạy backend.py
+## Thành viên
+| Name                  | Student ID  |
+|-----------------------|-------------|
+| Lê Quý Thành          | 20230067    |
+| Đoàn Tiến Thành       | 20235223    |
+| Sái Văn Hiếu          | 20230027    |
+| Cao Huy Thịnh         | 20230069    |
 
-frontend thì chạy control_panel (đổi thuật trong đấy)
-train_ui bên dưới (truyền None nếu ko dùng UI), Keyboard thì dùng trong cmd ứng với agent0(Hoặc cmd tương ứng với agent cho dùng keyboard, dù chưa có code cho bọn ghost (cái này tương tự là được), set trong factory)
+
+
+### Cài đặt 
+
+1. **Clone**
+2. **python control_panel.py trên 1 CMD**
+3. **Mở CMD khác**
+3. **cd backend**
+4. **python backend.py**

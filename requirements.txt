@@ -1,0 +1,5 @@
+numpy
+keyboard
+pygame
+matplotlib
+scipy

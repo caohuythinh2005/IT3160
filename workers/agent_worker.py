@@ -22,7 +22,6 @@ def main():
 
     client = SocketClient(host=HOST, port=PORT)
 
-    # Biến lưu trạng thái của bước trước đó (dùng cho RL train)
     last_game_state = None
     last_action = None
     last_score = 0
@@ -37,7 +36,6 @@ def main():
             print(f"--- [Agent {agent_idx} | Algo: {algo}] Running ---")
 
             while True:
-                # 1. Yêu cầu trạng thái mới từ Server
                 client.send({"type": "request_state", "agent": agent_idx})
                 msg = client.recv(timeout=1.0)
                 
@@ -47,40 +45,30 @@ def main():
 
                 game_state = deserialize_state(msg.get("state"))
                 
-                # 2. Tính toán Reward (Dựa trên chênh lệch điểm số)
                 current_score = getattr(game_state, "score", 0)
                 reward = msg.get("reward", current_score - last_score)
                 done = msg.get("done") or (msg.get("status") == "finished")
-
-                # 3. Gọi hàm Train (update_policy) nếu Agent hỗ trợ
-                # Logic: Dạy cho Agent biết hành động 'last_action' tại 'last_game_state' dẫn đến kết quả này
                 if hasattr(agent, "update_policy") and last_game_state is not None and last_action is not None:
                     agent.update_policy(last_game_state, last_action, reward, game_state, done)
-
-                # 4. Xử lý khi game kết thúc
                 if done:
                     last_game_state = None
                     last_action = None
                     last_score = 0
-                    time.sleep(0.5) # Nghỉ ngắn trước ván mới
+                    time.sleep(0.5) 
                     continue
 
-                # 5. Kiểm tra lượt đi (Nếu chưa đến lượt thì không cần Action, quay lại vòng lặp)
                 if msg.get("current_turn") != agent_idx:
                     time.sleep(0.05)
                     continue
 
-                # Cập nhật điểm khởi đầu nếu đây là nước đi đầu tiên
                 if last_game_state is None:
                     last_score = current_score
 
-                # 6. Chọn hành động mới (Inference)
                 action = agent.getAction(game_state)
                 
                 if action:
                     client.send({"type": "action", "agent": agent_idx, "action": action})
                     
-                    # 7. Lưu lại trạng thái để dùng cho bước Train tiếp theo
                     last_game_state = game_state
                     last_action = action
                     last_score = current_score

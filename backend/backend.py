@@ -20,6 +20,8 @@ if not os.path.isfile(MAP_FILE):
 
 NUM_AGENTS = 3
 state_lock = threading.Lock()
+clients_lock = threading.Lock()
+connected_clients = set() 
 ui = TkinterDisplay(zoom=1.5, frame_time=0.001)
 game = PacmanGame(MAP_FILE, display=ui)
 
@@ -60,17 +62,25 @@ def get_current_state():
 
 def handle_client(conn, addr):
     global paused
+    client_id = f"{addr[0]}:{addr[1]}"
+
+    with clients_lock:
+        connected_clients.add(client_id)
+        print(f"[SERVER] Client connected: {client_id} | Total: {len(connected_clients)}")
+
     buffer = ""
     try:
         while True:
             data = conn.recv(8192)
             if not data:
                 break
+
             buffer += data.decode("utf-8")
             while "\n" in buffer:
                 line, buffer = buffer.split("\n", 1)
                 if not line.strip():
                     continue
+
                 try:
                     msg = json.loads(line)
                 except json.JSONDecodeError:
@@ -92,6 +102,8 @@ def handle_client(conn, addr):
                 elif msg_type == "get_status":
                     res = {
                         "type": "status",
+                        "connected": True,
+                        "num_clients": len(connected_clients),
                         "last_executed": last_executed,
                         "paused": paused
                     }
@@ -107,8 +119,12 @@ def handle_client(conn, addr):
                         game.set_pause(False)
 
     except ConnectionResetError:
-        pass
+        print(f"[SERVER] Client reset connection: {client_id}")
+
     finally:
+        with clients_lock:
+            connected_clients.discard(client_id)
+            print(f"[SERVER] Client disconnected: {client_id} | Total: {len(connected_clients)}")
         conn.close()
 
 def start_server():
@@ -116,10 +132,16 @@ def start_server():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((HOST, PORT))
     s.listen(20)
+    print(f"[SERVER] Listening on {HOST}:{PORT}")
+
     try:
         while True:
             conn, addr = s.accept()
-            threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
+            threading.Thread(
+                target=handle_client,
+                args=(conn, addr),
+                daemon=True
+            ).start()
     finally:
         s.close()
 
