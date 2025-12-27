@@ -3,3 +3,4 @@ keyboard
 pygame
 matplotlib
 scipy
+torch
